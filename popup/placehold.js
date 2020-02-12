@@ -1,45 +1,35 @@
-/*
 async function handleMessage(request, sender) {
   let sites = await browser.topSites.get();
 
   console.log(sites);
   return {response: sites}
   // sendResponse({response: [sites]});
-
 }
-*/
 
-function listenForClicks() {
+function listenForClick() {
   document.addEventListener("click", (e) => {
 
-    function colorify(tabs) {
-        let c = e.target.textContent;
-        browser.tabs.sendMessage(tabs[0].id, {
-          command: "colorify",
-          colorName: c
-        });
-    }
+    function color(tabs) {
+      let color = e.target.textContent;
+      let sites = browser.topSites.get();
 
-    function reset(tabs) {
-        browser.tabs.sendMessage(tabs[0].id, {
-          command: "reset",
-        });
+      console.log(sites);
+      browser.tabs.sendMessage(tabs[0].id, {
+        command: color,
+        response: sites,
+        currentURL: browser.tabs.getCurrent()
+      });
     }
 
     function reportError(error) {
-      console.error(`Could not colorify: ${error}`);
+      console.error(`Could not do it: ${error}`);
     }
 
-    if (e.target.classList.contains("color")) {
+    if(e.target.classList.contains("reset") == false) {
       browser.tabs.query({active: true, currentWindow: true})
-        .then(colorify)
-        .catch(reportError);
+        .then(color).catch(reportError);
     }
-    else if (e.target.classList.contains("reset")) {
-      browser.tabs.query({active: true, currentWindow: true})
-        .then(reset)
-        .catch(reportError);
-    }
+
   });
 }
 
@@ -49,6 +39,10 @@ function reportExecuteScriptError(error) {
   console.error(`Failed to execute content script: ${error.message}`);
 }
 
-browser.tabs.executeScript({file: "/content_scripts/topify.js"})
-.then(listenForClicks)
-.catch(reportExecuteScriptError);
+browser.tabs.executeScript({file: "/content_scripts/main_script.js"})
+.then(listenForClick).catch(reportExecuteScriptError);
+
+//browser.runtime.onMessage.addListener(handleMessage);
+
+
+//browser.runtime.onMessage.addListener(handleMessage);
